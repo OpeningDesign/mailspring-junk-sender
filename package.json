@@ -1,0 +1,17 @@
+{
+  "name": "junk-sender",
+  "version": "0.1.0",
+  "main": "./lib/main",
+  "description": "Adds a toolbar button that creates a mail rule moving all future mail from the selected email's sender to the Junk folder.",
+  "license": "GPL-3.0",
+  "private": true,
+  "scripts": {
+    "test": "node test/junk-sender-test.js"
+  },
+  "engines": {
+    "mailspring": "*"
+  },
+  "windowTypes": {
+    "default": true
+  }
+}
