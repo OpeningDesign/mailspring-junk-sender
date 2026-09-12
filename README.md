@@ -43,12 +43,18 @@ and stops after 20,000 conversations.
 
 ## Install
 
-In Mailspring: **Developer → Install a Plugin…**, then choose this folder.
+Run `npm run install-local` in this folder, then restart Mailspring. The script copies
+`package.json`, `lib/` and `README.md` into Mailspring's packages folder — on Windows,
+`%APPDATA%\Mailspring\packages\junk-sender`.
 
-Installing copies the folder into Mailspring. After changing the plugin, install it again
-and restart Mailspring; a plugin that's already running isn't reloaded.
+Mailspring's own **Developer → Install a Plugin…** works the first time, but it copies the
+entire folder including `.git`, whose object files are read-only. Every reinstall after that
+fails with `EACCES, Permission denied … \.git\objects`, so prefer the script.
 
-To remove it, delete `%APPDATA%\Mailspring\packages\junk-sender` and restart Mailspring.
+To update after changing the plugin, run the script again and restart Mailspring; a plugin
+that's already running isn't reloaded.
+
+To remove it, delete the folder above and restart Mailspring.
 
 ## Testing
 

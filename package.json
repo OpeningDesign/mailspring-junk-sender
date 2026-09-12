@@ -6,7 +6,8 @@
   "license": "GPL-3.0",
   "private": true,
   "scripts": {
-    "test": "node test/junk-sender-test.js"
+    "test": "node test/junk-sender-test.js",
+    "install-local": "node scripts/install-local.js"
   },
   "engines": {
     "mailspring": "*"

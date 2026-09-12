@@ -183,7 +183,8 @@ const click = (b, event = {}) =>
       event
     )
   );
-const SHIFT_HINT = ' (Shift-click to match part of the address)';
+const SHIFT_HINT =
+  '\nShift-click to match part of the address (like a newsletter name) or a /regular expression/.';
 const INBOX_SUFFIX = ", including what's already in your Inbox";
 
 // Collects the text of a rendered element tree, so assertions can read what the popover shows.
@@ -237,6 +238,7 @@ const tests = {
       `Always move mail from new@spam.com to Junk${INBOX_SUFFIX}${SHIFT_HINT}`
     );
     assert.ok(el.children[0].props.url.startsWith('data:image/svg+xml,'));
+    assert.ok(!el.props['aria-label'].includes('\n'), 'aria-label stays on one line');
   },
 
   async 'click creates a changeFolder rule and moves the thread to spam'() {
