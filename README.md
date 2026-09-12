@@ -41,6 +41,20 @@ The search index can only match whole words from the start, so patterns are reso
 paging through your Inbox. That takes longer than the plain-click sweep on a big mailbox,
 and stops after 20,000 conversations.
 
+## Undoing a filter
+
+Select mail in your Junk folder whose sender you already filter, and the funnel turns into
+a crossed-out funnel. Clicking it moves that mail back to the Inbox and deletes the rules
+that sent the sender there, so their mail stops being filtered.
+
+The tooltip names the rules it will delete first. That matters for a rule matching part of
+an address, which may cover senders beyond the one you selected. To remove a rule without
+moving any mail, delete it in **Preferences → Mail Rules** instead.
+
+Mail in Junk whose sender has no rule keeps the normal funnel, so you can still filter a
+sender you have only ever marked as spam by hand. (Mailspring's own Not Spam button moves
+mail back without touching rules.)
+
 ## Install
 
 Run `npm run install-local` in this folder, then restart Mailspring. The script copies

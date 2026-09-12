@@ -13,6 +13,7 @@ let threadQueries = [];
 let listener = null;
 const calls = {
   addMailRule: [],
+  deleteMailRule: [],
   queueTasks: [],
   popSheet: 0,
   popover: [],
@@ -114,6 +115,7 @@ const stubs = {
     React: { Component, createElement: (type, props, ...children) => ({ type, props, children }) },
     Actions: {
       addMailRule: (r) => calls.addMailRule.push(r),
+      deleteMailRule: (id) => calls.deleteMailRule.push(id),
       queueTasks: (t) => calls.queueTasks.push(t),
       popSheet: () => calls.popSheet++,
       openPopover: (el, opts) => calls.popover.push({ el, opts }),
@@ -142,6 +144,7 @@ const stubs = {
     },
     TaskFactory: {
       tasksForMarkingAsSpam: ({ threads }) => [`task:${threads.map((t) => t.id).join(',')}`],
+      tasksForMarkingNotSpam: ({ threads }) => [`notspam:${threads.map((t) => t.id).join(',')}`],
     },
     ComponentRegistry: {
       register: (c, opts) => calls.registered.push([c, opts]),
@@ -202,6 +205,7 @@ function reset() {
   parsedQueries = [];
   threadQueries = [];
   calls.addMailRule = [];
+  calls.deleteMailRule = [];
   calls.queueTasks = [];
   calls.popSheet = 0;
   calls.popover = [];
@@ -552,6 +556,82 @@ const tests = {
     assert.ok(textOf(p.render()).includes('Check matches'));
   },
 
+  async 'in Junk with a rule: the button offers to undo'() {
+    rules = [
+      {
+        id: 'r1',
+        name: 'Junk mail containing minocquabrewing',
+        accountId: 'imap',
+        conditions: [{ templateKey: 'from', comparatorKey: 'contains', value: 'minocquabrewing' }],
+        actions: [{ templateKey: 'changeFolder', value: 'junk-id' }],
+      },
+    ];
+    messages = [msg('t1', 'weekly@minocquabrewing.com', 1)];
+    const b = await mount([thread('t1', 'imap', [{ role: 'spam' }])]);
+    const el = b.render();
+    assert.ok(
+      el.props.title.startsWith(
+        'Move this mail back to the Inbox and stop sending weekly@minocquabrewing.com to Junk'
+      ),
+      el.props.title
+    );
+    assert.ok(el.props.title.includes('Deletes the rule:'), el.props.title);
+    assert.ok(el.props.title.includes('Junk mail containing minocquabrewing'), el.props.title);
+    const paths = decodeURIComponent(el.children[0].props.url).match(/<path/g);
+    assert.strictEqual(paths.length, 2, 'undo shows the crossed-out funnel');
+  },
+
+  async 'undo deletes the covering rules and moves the mail back to the Inbox'() {
+    rules = [
+      {
+        id: 'r1',
+        name: 'Junk mail containing minocquabrewing',
+        accountId: 'imap',
+        conditions: [{ templateKey: 'from', comparatorKey: 'contains', value: 'minocquabrewing' }],
+        actions: [{ templateKey: 'changeFolder', value: 'junk-id' }],
+      },
+    ];
+    messages = [
+      msg('t1', 'weekly@minocquabrewing.com', 1),
+      msg('t2', 'daily@minocquabrewing.com', 1),
+    ];
+    const b = await mount([
+      thread('t1', 'imap', [{ role: 'spam' }]),
+      thread('t2', 'imap', [{ role: 'spam' }]),
+    ]);
+    await click(b);
+    assert.deepStrictEqual(calls.deleteMailRule, ['r1'], 'one rule covers both senders');
+    assert.deepStrictEqual(calls.queueTasks, [['notspam:t1,t2']]);
+    assert.strictEqual(calls.addMailRule.length, 0);
+    assert.strictEqual(calls.popSheet, 1);
+  },
+
+  async 'in Junk without a rule: the button still offers to filter'() {
+    messages = [msg('t1', 'new@spam.com', 1)];
+    const b = await mount([thread('t1', 'imap', [{ role: 'spam' }])]);
+    assert.ok(b.render().props.title.startsWith('Always move mail'));
+    await click(b);
+    assert.strictEqual(calls.addMailRule.length, 1);
+    assert.deepStrictEqual(calls.deleteMailRule, []);
+  },
+
+  async 'a mix of Junk and Inbox mail keeps the filter behaviour'() {
+    rules = [
+      {
+        id: 'r2',
+        name: 'Junk mail from new@spam.com',
+        accountId: 'imap',
+        conditions: [{ templateKey: 'from', comparatorKey: 'equals', value: 'new@spam.com' }],
+        actions: [{ templateKey: 'changeFolder', value: 'junk-id' }],
+      },
+    ];
+    messages = [msg('t1', 'new@spam.com', 1), msg('t2', 'new@spam.com', 1)];
+    const b = await mount([thread('t1', 'imap', [{ role: 'spam' }]), thread('t2', 'imap')]);
+    assert.ok(b.render().props.title.includes('A rule already filters their new mail.'));
+    await click(b);
+    assert.deepStrictEqual(calls.deleteMailRule, []);
+    assert.deepStrictEqual(calls.queueTasks, [['task:t2']], 'only the Inbox copy moves');
+  },
   async 'hidden for Gmail (label) accounts'() {
     messages = [msg('t1', 'new@spam.com', 2)];
     const b = await mount([thread('t1', 'gmail')]);
