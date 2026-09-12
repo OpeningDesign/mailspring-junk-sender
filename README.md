@@ -17,6 +17,30 @@ accounts, whose rule editor doesn't offer folder actions.
 Mailspring applies rules itself as it syncs new mail, so a blocked sender's email shows up
 in your Inbox on other devices until Mailspring has synced it.
 
+## Filtering on part of the address
+
+Senders like `minocquabrewingcompanytimes+weekly-roundup@substack.com` change often, so you
+may want to match a fragment instead of the whole address. **Shift-click** the funnel to open
+a box holding the sender's address, and edit it down to what you want to match:
+
+- **Plain text** matches any sender *containing* it, ignoring case — `minocquabrewing`
+  catches every address and display name with that text in it.
+- **`/…/`** is a regular expression — `/^minocqua.*@substack\.com$/`. An invalid expression
+  is reported rather than saved.
+
+Matching applies to the sender's display name as well as the address, the same as
+Mailspring's own rules. Note that text is matched literally, so `minocquabrewing` does not
+match the display name "Minocqua Brewing" — the space is part of the name.
+
+**Check matches** shows how many Inbox conversations match, and which senders, before
+anything moves. Confirming saves the pattern as a rule (using the `contains` or
+`matches expression` comparator) and moves those conversations to Junk. A pattern can match
+far more mail than you expect, so check the count before confirming.
+
+The search index can only match whole words from the start, so patterns are resolved by
+paging through your Inbox. That takes longer than the plain-click sweep on a big mailbox,
+and stops after 20,000 conversations.
+
 ## Install
 
 In Mailspring: **Developer → Install a Plugin…**, then choose this folder.
