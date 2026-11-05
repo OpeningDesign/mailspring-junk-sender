@@ -142,6 +142,11 @@ const stubs = {
         return { query };
       },
     },
+    ChangeLabelsTask: class ChangeLabelsTask {
+      constructor(data) {
+        Object.assign(this, data);
+      }
+    },
     TaskFactory: {
       tasksForMarkingAsSpam: ({ threads }) => [`task:${threads.map((t) => t.id).join(',')}`],
       tasksForMarkingNotSpam: ({ threads }) => [`notspam:${threads.map((t) => t.id).join(',')}`],
@@ -632,10 +637,31 @@ const tests = {
     assert.deepStrictEqual(calls.deleteMailRule, []);
     assert.deepStrictEqual(calls.queueTasks, [['task:t2']], 'only the Inbox copy moves');
   },
-  async 'hidden for Gmail (label) accounts'() {
+  async 'Gmail (label) accounts: same folder rule, move to Spam'() {
     messages = [msg('t1', 'new@spam.com', 2)];
     const b = await mount([thread('t1', 'gmail')]);
-    assert.strictEqual(b.render(), null);
+    assert.notStrictEqual(b.render(), null);
+    await click(b);
+    assert.strictEqual(calls.addMailRule[0].actions[0].templateKey, 'changeFolder');
+    assert.strictEqual(calls.addMailRule[0].actions[0].value, 'junk-id');
+    assert.deepStrictEqual(calls.queueTasks, [['task:t1']]);
+  },
+
+  async 'Gmail unjunk: deletes the rule, not-spam move plus Inbox label'() {
+    rules = [
+      {
+        id: 'r1',
+        accountId: 'gmail',
+        conditions: [{ templateKey: 'from', comparatorKey: 'equals', value: 'new@spam.com' }],
+        actions: [{ templateKey: 'changeFolder', value: 'junk-id' }],
+      },
+    ];
+    messages = [msg('t1', 'new@spam.com', 2)];
+    const b = await mount([thread('t1', 'gmail', [{ role: 'spam' }])]);
+    await click(b);
+    assert.deepStrictEqual(calls.deleteMailRule, ['r1']);
+    assert.strictEqual(calls.queueTasks[0][0], 'notspam:t1');
+    assert.strictEqual(calls.queueTasks[0][1].labelsToAdd[0].id, 'inbox-id');
   },
 
   async 'hidden when every message is from me'() {
