@@ -1,6 +1,6 @@
 # Junk Sender
 
-A Mailspring plugin for IMAP accounts. Select an email and click the funnel button in the
+A Mailspring plugin for IMAP and Gmail accounts. Select an email and click the funnel button in the
 toolbar to always move mail from its sender to your Junk folder.
 
 Clicking the button:
@@ -11,8 +11,12 @@ Clicking the button:
   sender, to Junk. Undo the move from the undo toast; the rule stays until you delete it.
 
 If the sender already has a rule, the button stays available: clicking it moves their
-Inbox mail to Junk without creating a second rule. The button is hidden on Gmail
-accounts, whose rule editor doesn't offer folder actions.
+Inbox mail to Junk without creating a second rule.
+
+On Gmail accounts the button works the same way (Spam is a folder in Mailspring even on
+label-based accounts). The rule editor of Gmail accounts doesn't list folder actions, so the
+rule shows "Could not find template" in Preferences; it still runs, and you can delete it
+there. Undo on Gmail moves the mail back to the Inbox.
 
 Mailspring applies rules itself as it syncs new mail, so a blocked sender's email shows up
 in your Inbox on other devices until Mailspring has synced it.
